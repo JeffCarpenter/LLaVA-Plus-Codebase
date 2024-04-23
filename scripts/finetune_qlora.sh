@@ -14,29 +14,31 @@
 # MODEL_VERSION="llama-2-7b-chat"
 ################## LLaMA-2 ##################
 
-deepspeed llava/train/train_mem.py \
-    --deepspeed ./scripts/zero2.json \
+export out_dir="${LOGDIR}/llava-plus/llava_llama3_plus_8b"
+mkdir -p $out_dir
+
+python llava/train/train.py \
     --lora_enable True \
     --bits 4 \
-    --model_name_or_path ./checkpoints/$MODEL_VERSION \
-    --version $PROMPT_VERSION \
-    --data_path ./playground/data/llava_instruct_80k.json \
-    --image_folder /path/to/coco/train2017 \
+    --model_name_or_path xtuner/llava-llama-3-8b-v1_1 \
+    --version v0 \
+    --data_path $HOME/data/llava-plus/llava-150k-tool-aug.json,$HOME/data/llava-plus-v1-117k-tool-merge.json \
+    --image_folder $HOME/data/train2017/,$HOME/data/hiertext-main/train,/path/to/instruct-pix2pix/clip-filtered-dataset,$HOME/data/VG_100K \
     --vision_tower openai/clip-vit-large-patch14 \
     --pretrain_mm_mlp_adapter ./checkpoints/llava-$MODEL_VERSION-pretrain/mm_projector.bin \
     --mm_vision_select_layer -2 \
     --mm_use_im_start_end False \
     --mm_use_im_patch_token False \
     --bf16 True \
-    --output_dir ./checkpoints/llava-$MODEL_VERSION-finetune_lora \
+    --output_dir $out_dir \
     --num_train_epochs 1 \
     --per_device_train_batch_size 16 \
     --per_device_eval_batch_size 4 \
     --gradient_accumulation_steps 1 \
     --evaluation_strategy "no" \
     --save_strategy "steps" \
-    --save_steps 50000 \
-    --save_total_limit 1 \
+    --save_steps 1000 \
+    --save_total_limit 4 \
     --learning_rate 2e-5 \
     --weight_decay 0. \
     --warmup_ratio 0.03 \
@@ -46,5 +48,5 @@ deepspeed llava/train/train_mem.py \
     --model_max_length 2048 \
     --gradient_checkpointing True \
     --lazy_preprocess True \
-    --dataloader_num_workers 4 \
+    --dataloader_num_workers 8 \
     --report_to wandb

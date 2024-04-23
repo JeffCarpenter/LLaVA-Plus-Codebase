@@ -871,7 +871,7 @@ def train():
             model.get_input_embeddings().register_forward_hook(make_inputs_require_grad)
 
     if training_args.lora_enable:
-        from peft import LoraConfig, get_peft_model
+        from unsloth import FastLlamaModel, LoraConfig, get_peft_model
         lora_config = LoraConfig(
             r=training_args.lora_r,
             lora_alpha=training_args.lora_alpha,
@@ -958,6 +958,7 @@ def train():
 
     if training_args.bits in [4, 8]:
         from peft.tuners.lora import LoraLayer
+
         for name, module in model.named_modules():
             if isinstance(module, LoraLayer):
                 if training_args.bf16:
